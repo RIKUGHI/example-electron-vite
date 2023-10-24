@@ -1,14 +1,136 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
-import path, { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { electronApp, is, optimizer } from '@electron-toolkit/utils'
+import { BrowserWindow, app, ipcMain, shell } from 'electron'
+import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
-import fs from 'fs'
+import { Album } from '../entities/Album'
+import { Photo } from '../entities/Photo'
+import { AppDataSource } from './data-source'
+
+AppDataSource.initialize()
+  .then(async () => {
+    console.log('Inserting a new photo into the database...')
+    /**
+     * use EntityManager
+     */
+    // const photo = new Photo()
+    // photo.name = 'Me and Bears'
+    // photo.description = 'I am near polar bears'
+    // photo.filename = 'photo-with-bears.jpg'
+    // photo.views = 1
+    // photo.isPublished = true
+    // await AppDataSource.manager.save(photo)
+    // console.log('Saved a new photo with id: ' + photo.id)
+
+    // console.log('Loading photos from the database...')
+    // const photos = await AppDataSource.manager.find(Photo)
+    // console.log('Loaded photos: ', photos)
+
+    /**
+     * use Repository
+     */
+    // const photo = new Photo()
+    // photo.name = 'Me and Bears'
+    // photo.description = 'I am near polar bears'
+    // photo.filename = 'photo-with-bears.jpg'
+    // photo.views = 1
+    // photo.isPublished = true
+
+    // const photoRepository = AppDataSource.getRepository(Photo)
+    // await photoRepository.save(photo)
+    // console.log('Photo has been saved', photo.id)
+
+    // console.log('Loading photos from the database...')
+    // const photos = await photoRepository.find()
+    // console.log('Loaded photos: ', photos)
+
+    /**
+     * one-to-one relationship
+     */
+    // console.log('========================================')
+
+    // // create a photo
+    // const photo = new Photo()
+    // photo.name = 'Me and Bears'
+    // photo.description = 'I am near polar bears'
+    // photo.filename = 'photo-with-bears.jpg'
+    // photo.views = 1
+    // photo.isPublished = true
+
+    // // create a photo metadata
+    // const metadata = new PhotoMetadata()
+    // metadata.height = 640
+    // metadata.width = 480
+    // metadata.compressed = true
+    // metadata.comment = 'cybershoot'
+    // metadata.orientation = 'portrait'
+    // metadata.photo = photo // this way we connect them
+
+    // // get entity repositories
+    // const photoRepository = AppDataSource.getRepository(Photo)
+    // const metadataRepository = AppDataSource.getRepository(PhotoMetadata)
+
+    // // first we should save a photo
+    // // await photoRepository.save(photo)
+
+    // // photo is saved. Now we need to save a photo metadata
+    // // await metadataRepository.save(metadata)
+
+    // // const photos = await photoRepository.find({
+    // //   relations: {
+    // //     metadata: true
+    // //   }
+    // // })
+
+    // const photos = await AppDataSource.getRepository(Photo)
+    //   .createQueryBuilder('photo')
+    //   .innerJoinAndSelect('photo.metadata', 'metadata')
+    //   .getMany()
+    // console.log('photos: ', photos)
+
+    /**
+     * many-to-many relationship
+     */
+    console.log('========================================')
+    // create a few albums
+    const album1 = new Album()
+    album1.name = 'Bears'
+    // await AppDataSource.manager.save(album1)
+
+    const album2 = new Album()
+    album2.name = 'Me'
+    // await AppDataSource.manager.save(album2)
+
+    // create a few photos
+    const photo = new Photo()
+    photo.name = 'Me and Bears'
+    photo.description = 'I am near polar bears'
+    photo.filename = 'photo-with-bears.jpg'
+    photo.views = 1
+    photo.isPublished = true
+    photo.albums = [album1, album2]
+    // await AppDataSource.manager.save(photo)
+
+    // now our photo is saved and albums are attached to it
+    // now lets load them:
+    const loadedPhoto = await AppDataSource.getRepository(Photo).findOne({
+      where: {
+        id: 4
+      },
+      relations: {
+        albums: true
+      }
+    })
+    console.log('photos: ', loadedPhoto)
+
+    console.log('success')
+  })
+  .catch((error) => console.log('bergetar', error))
 
 // Pattern 2 - 1
 let x = 0
 let secondWindow: undefined | BrowserWindow
 
-ipcMain.handle('pattern-2', (e) => {
+ipcMain.handle('pattern-2', () => {
   return new Promise((res) => {
     setTimeout(() => {
       const count = x++
@@ -91,6 +213,7 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+    // mainWindow.webContents.toggleDevTools()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
