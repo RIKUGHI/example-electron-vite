@@ -6,8 +6,8 @@ export class Post {
   id!: number
 
   @Column('varchar')
-  title!: string
+  name!: string
 
-  @Column('varchar')
-  text!: string
+  // @Column('varchar')
+  // text!: string
 }

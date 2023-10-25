@@ -2,9 +2,10 @@ import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { BrowserWindow, app, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
-import { Album } from '../entities/Album'
-import { Photo } from '../entities/Photo'
+// import { Album } from '../entities/Album'
+// import { Photo } from '../entities/Photo'
 import { AppDataSource } from './data-source'
+import { Post } from '../entities/Post'
 
 AppDataSource.initialize()
   .then(async () => {
@@ -125,7 +126,13 @@ AppDataSource.initialize()
     /**
      * migrations
      */
-    console.log(await AppDataSource.undoLastMigration())
+    const post = new Post()
+    post.name = 'wew'
+    // console.log(await AppDataSource.runMigrations())
+    // console.log(await AppDataSource.showMigrations())
+    await AppDataSource.runMigrations()
+    // await AppDataSource.manager.save(post)
+    // console.log(await AppDataSource.undoLastMigration())
 
     console.log('success')
   })
